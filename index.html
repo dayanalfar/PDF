@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2869ed">
+<meta name="description" content="Lector PDF personal, sin anuncios integrados.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Lector PDF</title>
+<style>
+:root{--bg:#f5f7ff;--surface:#fff;--ink:#20284b;--muted:#737d9d;--line:#e3e8fa;--primary:#2869ed;--primary2:#8179e8;--pale:#eaf0ff;--blue:#e7f5ff;--shadow:0 8px 28px #303e8010}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.48 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body.dark{--bg:#171b2c;--surface:#222840;--ink:#f2f4ff;--muted:#b2bad8;--line:#39415f;--pale:#2b385d;--blue:#263b50;--shadow:0 8px 28px #0003}
+button,input,textarea,select{font:inherit}button{cursor:pointer;border:0}
+.app{max-width:980px;margin:auto;min-height:100dvh;padding-bottom:35px}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 91%,transparent);backdrop-filter:blur(12px);padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:850;font-size:19px}.brand img{width:42px;height:42px;border-radius:12px}.sub{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.6px}
+main{padding:16px;display:grid;gap:15px}.hero{background:linear-gradient(120deg,#e5f4ff,#eeedff);border:1px solid #dfe7ff;border-radius:23px;padding:20px;color:#202b58}
+body.dark .hero{background:linear-gradient(120deg,#263e58,#39345e);color:var(--ink);border-color:var(--line)}
+.hero h1{font-size:25px;line-height:1.16;margin:10px 0 8px;letter-spacing:-.6px}.hero p{margin:0 0 15px;opacity:.8}
+.pill{display:inline-block;border-radius:99px;padding:5px 9px;background:#dfeaff;color:#245ed0;font-size:10px;font-weight:850;letter-spacing:.5px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:19px;padding:15px;box-shadow:var(--shadow)}
+.title{font-size:16px;font-weight:850;margin:0 0 11px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.primary{background:linear-gradient(120deg,#2869ed,#7776df);color:white;border-radius:12px;padding:11px 15px;font-weight:750}
+.secondary,.iconbtn{background:var(--surface);border:1px solid var(--line);color:var(--ink);border-radius:11px;padding:9px 11px}
+input[type=text],input[type=color],textarea,select{width:100%;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);padding:10px;outline-color:var(--primary)}
+textarea{min-height:88px;resize:vertical}.small{font-size:12px;color:var(--muted)}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}
+.reader{display:none}.reader.active{display:block}
+.toolbar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:10px 0}.toolbar button{background:var(--pale);color:var(--ink);padding:8px 10px;border-radius:10px}
+.toolbar button:disabled{opacity:.4}.pagecount{font-size:12px;color:var(--muted);min-width:78px;text-align:center}
+#pageWrap{background:#e9ecf8;border-radius:13px;padding:10px;display:flex;justify-content:center;overflow:auto;min-height:180px}
+body.dark #pageWrap{background:#171b2c}#pdfCanvas{max-width:100%;height:auto;background:#fff;box-shadow:0 3px 15px #20254a20}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}.tabs button{border-radius:99px;padding:8px 11px;background:var(--bg);color:var(--muted)}.tabs button.active{background:var(--pale);color:var(--primary);font-weight:800}
+.panel.hidden{display:none}.list{display:grid;gap:7px;margin-top:10px}.item{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:11px;padding:9px 10px}.item span{overflow-wrap:anywhere}
+.notice{background:linear-gradient(130deg,var(--blue),var(--pale));padding:12px;border-radius:13px}
+#searchResults{max-height:180px;overflow:auto}.result{padding:8px;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
+@media(min-width:760px){main{padding:23px;grid-template-columns:1.3fr .9fr}.hero,.reader{grid-column:1/-1}.hero h1{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div class="brand"><img src="icons/icon-192.png" alt="Icono PDF"><div><span id="brandName">Lector PDF</span><div class="sub">TU ESPACIO DE LECTURA</div></div></div>
+ <div class="row" style="flex:0 0 auto"><button class="iconbtn" id="themeBtn" aria-label="Cambiar tema">🌙</button><button class="iconbtn" id="installBtn" hidden>＋ Instalar</button></div>
+</header>
+<main>
+<section class="hero">
+ <span class="pill">LECTURA TRANQUILA · SIN ANUNCIOS INTEGRADOS</span>
+ <h1>Un lugar tranquilo<br>para tus ideas. 💜</h1>
+ <p>Abre tus documentos, guarda páginas importantes y organiza tus apuntes.</p>
+ <button class="primary" id="openBtn">＋ Abrir un PDF</button>
+ <input id="fileInput" type="file" accept="application/pdf,.pdf" hidden>
+</section>
+
+<section class="reader card" id="reader">
+ <div class="title"><span id="docTitle">Documento</span><button class="secondary" id="closeDoc">Cerrar</button></div>
+ <div class="toolbar">
+  <button id="prev">←</button><span class="pagecount" id="pageLabel">1 / 1</span><button id="next">→</button>
+  <button id="zoomOut">−</button><button id="zoomIn">＋ Zoom</button><button id="bookmarkBtn">🔖 Guardar página</button>
+ </div>
+ <div class="toolbar"><input id="searchInput" type="text" placeholder="Buscar una palabra en el PDF…" style="flex:1;min-width:180px"><button class="secondary" id="searchBtn">Buscar</button></div>
+ <div id="searchResults"></div>
+ <div id="pageWrap"><canvas id="pdfCanvas"></canvas></div>
+ <p class="small" id="pdfStatus">El documento se procesa en tu navegador. La primera carga requiere Internet para descargar el motor PDF.</p>
+</section>
+
+<section class="card">
+ <h2 class="title">📚 Herramientas de estudio</h2>
+ <div class="tabs">
+  <button class="active" data-tab="notes">Mis notas</button><button data-tab="marks">Marcadores</button><button data-tab="highlights">Fragmentos</button><button data-tab="study">Asistente IA</button>
+ </div>
+ <div id="notesPanel" class="panel">
+  <p class="small">Tus apuntes se guardan en este dispositivo y navegador.</p>
+  <textarea id="noteInput" placeholder="Escribe tus apuntes aquí…"></textarea>
+  <div class="row" style="margin-top:8px"><button class="primary" id="saveNote">Guardar apunte</button><button class="secondary" id="exportNotes">Exportar apuntes</button></div>
+  <div class="list" id="notesList"></div>
+ </div>
+ <div id="marksPanel" class="panel hidden"><p class="small">Guarda la página actual y vuelve a ella cuando quieras.</p><div class="list" id="marksList"></div></div>
+ <div id="highlightsPanel" class="panel hidden">
+  <p class="small">Selecciona texto desde el documento no siempre es posible en la vista de página; pega aquí un fragmento que quieras conservar y añade la página.</p>
+  <input id="highlightPage" type="text" inputmode="numeric" placeholder="Número de página (opcional)">
+  <textarea id="highlightInput" placeholder="Pega aquí el fragmento importante…"></textarea>
+  <button class="primary" id="saveHighlight" style="margin-top:8px">Guardar fragmento</button><div class="list" id="highlightsList"></div>
+ </div>
+ <div id="studyPanel" class="panel hidden">
+  <div class="notice"><strong>🧠 Asistente de estudio</strong><p class="small">Esta versión puede extraer el texto del PDF y preparar una consulta. Para generar respuestas automáticas, resúmenes inteligentes y cuestionarios dentro de la app, hace falta conectar un servicio de IA mediante un servidor seguro. No introduzcas claves secretas en esta página.</p></div>
+  <textarea id="aiQuestion" placeholder="Ej.: Resume las ideas principales del capítulo 2 y cita las páginas…"></textarea>
+  <div class="row" style="margin-top:8px"><button class="primary" id="prepareAI">Preparar consulta</button><button class="secondary" id="copyExtract">Copiar texto extraído</button></div>
+  <p class="small" id="aiStatus">Abre un PDF para extraer su texto. Los documentos extensos pueden superar el límite de copia del teléfono.</p>
+ </div>
+</section>
+
+<section class="card">
+ <h2 class="title">🎨 Personaliza tu lector</h2>
+ <label class="small" for="appName">Nombre que aparece dentro de la aplicación</label>
+ <input id="appName" type="text" maxlength="24" placeholder="Lector PDF">
+ <div class="row" style="margin-top:9px"><button class="primary" id="saveName">Guardar nombre</button><button class="secondary" id="resetName">Restablecer</button></div>
+ <p class="small">El nombre del acceso directo de Android depende del nombre de instalación definido al publicar la PWA. Cambiar este campo personaliza el título dentro de la aplicación.</p>
+</section>
+<section class="card">
+ <h2 class="title">🔐 Privacidad</h2>
+ <p class="small">Los PDF se procesan localmente en tu navegador y no se envían automáticamente a un servidor. Las notas y marcadores se guardan en el almacenamiento del navegador. Si borras los datos del navegador, podrías perderlos; expórtalos para conservar una copia.</p>
+</section>
+</main>
+<footer>Lector PDF · Diseño azul eléctrico, blanco y lila · Prototipo personal</footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let pdf=null,page=1,scale=1.15,fileName='',pageTexts=[],deferredInstall=null;
+let notes=JSON.parse(localStorage.getItem('lp_notes')||'[]'),marks=JSON.parse(localStorage.getItem('lp_marks')||'[]'),clips=JSON.parse(localStorage.getItem('lp_clips')||'[]');
+$('openBtn').onclick=()=>$('fileInput').click();
+$('fileInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(!window.pdfjsLib){$('pdfStatus').textContent='No se pudo cargar PDF.js. Revisa tu conexión.';return}
+try{$('pdfStatus').textContent='Abriendo documento…';const bytes=await f.arrayBuffer();pdf=await pdfjsLib.getDocument({data:bytes}).promise;page=1;scale=1.15;fileName=f.name;pageTexts=[];$('docTitle').textContent=fileName;$('reader').classList.add('active');await extractText();await renderPage();$('pdfStatus').textContent=`Documento abierto: ${pdf.numPages} páginas. Procesado localmente.`;}catch(err){console.error(err);alert('No se pudo abrir el PDF. Puede estar dañado o protegido.')}e.target.value='';};
+async function extractText(){for(let i=1;i<=pdf.numPages;i++){try{const p=await pdf.getPage(i),t=await p.getTextContent();pageTexts.push(t.items.map(x=>x.str).join(' '));}catch(e){pageTexts.push('')}}$('aiStatus').textContent=`Texto extraído de ${pageTexts.length} páginas. Puedes preparar una consulta de estudio.`}
+async function renderPage(){if(!pdf)return;const p=await pdf.getPage(page),v=p.getViewport({scale}),c=$('pdfCanvas'),ctx=c.getContext('2d');c.width=v.width;c.height=v.height;await p.render({canvasContext:ctx,viewport:v}).promise;$('pageLabel').textContent=`${page} / ${pdf.numPages}`;$('prev').disabled=page<=1;$('next').disabled=page>=pdf.numPages}
+$('prev').onclick=()=>{if(page>1){page--;renderPage()}};$('next').onclick=()=>{if(pdf&&page<pdf.numPages){page++;renderPage()}};
+$('zoomIn').onclick=()=>{scale=Math.min(2.5,scale+.15);renderPage()};$('zoomOut').onclick=()=>{scale=Math.max(.55,scale-.15);renderPage()};
+$('closeDoc').onclick=()=>{$('reader').classList.remove('active');pdf=null;pageTexts=[]};
+$('bookmarkBtn').onclick=()=>{if(!pdf)return;marks.unshift({file:fileName,page});marks=marks.slice(0,100);localStorage.setItem('lp_marks',JSON.stringify(marks));renderMarks();$('pdfStatus').textContent=`Marcador guardado en la página ${page}.`};
+$('searchBtn').onclick=()=>{const q=$('searchInput').value.trim().toLowerCase(),el=$('searchResults');el.innerHTML='';if(!q||!pageTexts.length)return;let found=0;pageTexts.forEach((t,i)=>{const idx=t.toLowerCase().indexOf(q);if(idx>=0&&found<100){found++;const d=document.createElement('div');d.className='result';d.textContent=`Página ${i+1}: …${t.slice(Math.max(0,idx-45),idx+q.length+65)}…`;d.onclick=()=>{page=i+1;renderPage();$('pageWrap').scrollIntoView({behavior:'smooth'})};el.append(d)}});if(!found)el.textContent='No se encontraron coincidencias.'};
+$('saveNote').onclick=()=>{const t=$('noteInput').value.trim();if(!t)return;notes.unshift({text:t,file:fileName||''});localStorage.setItem('lp_notes',JSON.stringify(notes));$('noteInput').value='';renderNotes()};
+$('exportNotes').onclick=()=>downloadText('mis-apuntes.txt',notes.map((n,i)=>`${i+1}. ${n.text}${n.file?' ('+n.file+')':''}`).join('\n\n'));
+function downloadText(name,text){const a=document.createElement('a'),u=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+function renderNotes(){renderList('notesList',notes,(i)=>{notes.splice(i,1);localStorage.setItem('lp_notes',JSON.stringify(notes));renderNotes()},n=>n.text)}
+function renderMarks(){renderList('marksList',marks,(i)=>{marks.splice(i,1);localStorage.setItem('lp_marks',JSON.stringify(marks));renderMarks()},m=>`${m.file} · página ${m.page}`)}
+function renderClips(){renderList('highlightsList',clips,(i)=>{clips.splice(i,1);localStorage.setItem('lp_clips',JSON.stringify(clips));renderClips()},c=>`${c.text} ${c.page?'(pág. '+c.page+')':''}`)}
+function renderList(id,arr,remove,label){const el=$(id);el.innerHTML='';if(!arr.length){el.innerHTML='<p class="small">Todavía no hay elementos guardados.</p>';return}arr.forEach((x,i)=>{const row=document.createElement('div');row.className='item';const s=document.createElement('span');s.textContent=label(x);const b=document.createElement('button');b.className='secondary';b.textContent='×';b.onclick=()=>remove(i);row.append(s,b);el.append(row)})}
+$('saveHighlight').onclick=()=>{const t=$('highlightInput').value.trim();if(!t)return;clips.unshift({text:t,page:$('highlightPage').value.trim()});localStorage.setItem('lp_clips',JSON.stringify(clips));$('highlightInput').value='';renderClips()};
+$('prepareAI').onclick=async()=>{const q=$('aiQuestion').value.trim()||'Resume las ideas principales y cita las páginas.';if(!pageTexts.length){$('aiStatus').textContent='Primero abre un PDF.';return}const content=pageTexts.map((t,i)=>`[Página ${i+1}] ${t}`).join('\n');const prompt=`Actúa como asistente de estudio. Responde solo con información del documento, indica las páginas que respaldan cada afirmación y señala si algo no aparece en el texto.\n\nPREGUNTA: ${q}\n\nDOCUMENTO:\n${content.slice(0,90000)}`;try{await navigator.clipboard.writeText(prompt);$('aiStatus').textContent='Consulta y texto del PDF copiados. Pégalos en tu asistente de IA favorito. Se incluyen hasta 90 000 caracteres.'}catch(e){$('aiStatus').textContent='No se pudo copiar automáticamente. Usa “Copiar texto extraído” y prepara tu pregunta manualmente.'}};
+$('copyExtract').onclick=async()=>{const content=pageTexts.map((t,i)=>`[Página ${i+1}] ${t}`).join('\n');try{await navigator.clipboard.writeText(content.slice(0,90000));$('aiStatus').textContent='Texto extraído copiado (máximo 90 000 caracteres).'}catch(e){$('aiStatus').textContent='No se pudo copiar. Prueba desde Chrome con conexión segura.'}};
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['notes','marks','highlights','study'].forEach(t=>$(t+'Panel').classList.toggle('hidden',t!==b.dataset.tab))});
+$('themeBtn').onclick=()=>{document.body.classList.toggle('dark');localStorage.setItem('lp_dark',document.body.classList.contains('dark')?'1':'0');$('themeBtn').textContent=document.body.classList.contains('dark')?'☀️':'🌙'};
+if(localStorage.getItem('lp_dark')==='1'){document.body.classList.add('dark');$('themeBtn').textContent='☀️'}
+const savedName=localStorage.getItem('lp_name');if(savedName){$('brandName').textContent=savedName;$('appName').value=savedName}
+$('saveName').onclick=()=>{const n=$('appName').value.trim();if(!n)return;localStorage.setItem('lp_name',n);$('brandName').textContent=n};
+$('resetName').onclick=()=>{localStorage.removeItem('lp_name');$('appName').value='';$('brandName').textContent='Lector PDF'};
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('installBtn').hidden=false});
+$('installBtn').onclick=async()=>{if(!deferredInstall){alert('En Chrome, abre el menú ⋮ y elige “Instalar aplicación” o “Añadir a pantalla de inicio”.');return}deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;$('installBtn').hidden=true};
+renderNotes();renderMarks();renderClips();
+</script>
+</body></html>

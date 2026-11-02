@@ -1,0 +1,35 @@
+LECTOR PDF — paquete PWA para Android
+
+CONTENIDO
+- index.html: aplicación.
+- manifest.webmanifest: nombre, icono y configuración instalable.
+- sw.js: caché básica de la aplicación.
+- icons/: icono elegido en tamaños 192 y 512.
+
+FUNCIONES IMPLEMENTADAS
+- Abrir PDF en el navegador con PDF.js.
+- Navegación por páginas y zoom.
+- Búsqueda de palabras en el texto extraído del PDF.
+- Marcadores.
+- Apuntes y exportación TXT.
+- Guardar fragmentos destacados manualmente.
+- Modo claro/oscuro.
+- Cambiar el nombre mostrado dentro de la interfaz.
+- Preparar una consulta con texto del PDF para pegar en un asistente de IA externo.
+
+LIMITACIÓN IMPORTANTE DE IA
+No hay un modelo de IA conectado dentro de esta versión. El botón "Preparar consulta" copia una pregunta junto con el texto extraído (hasta 90.000 caracteres) para pegarlo en ChatGPT u otro asistente. Para integrar IA directamente se necesita un backend seguro y un proveedor de IA; no se debe poner una clave API privada en el HTML.
+
+CÓMO INSTALAR EN ANDROID
+1. Publica TODO el contenido de esta carpeta en un hosting HTTPS (por ejemplo, un sitio estático).
+2. Abre la URL HTTPS del sitio en Google Chrome para Android.
+3. Abre el menú ⋮ y toca "Instalar aplicación" o "Añadir a pantalla de inicio".
+4. Confirma. Aparecerá un acceso directo con el icono PDF.
+5. Para cambiar el nombre que aparece bajo el icono, cambia "name" y "short_name" en manifest.webmanifest y vuelve a publicar. El nombre editable dentro de la aplicación no cambia el nombre del icono del sistema.
+
+NOTAS
+- La instalación PWA requiere HTTPS (o localhost para pruebas).
+- PDF.js se carga desde un CDN, por lo que la primera apertura de PDF requiere conexión.
+- Los documentos se procesan localmente en el dispositivo; no se suben automáticamente.
+- Las notas y marcadores usan almacenamiento local del navegador. Exporta tus notas como copia.
+- Este ZIP contiene el código fuente de una PWA, NO un APK Android.
